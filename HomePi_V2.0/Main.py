@@ -1,7 +1,6 @@
 from flask import Flask
 import json
 import requests
-import unittest
 
 app = Flask(__name__)
 
