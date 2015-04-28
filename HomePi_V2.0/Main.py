@@ -1,4 +1,6 @@
 from flask import Flask
+from flask import request
+from flask import Response
 import json
 import requests
 
@@ -46,13 +48,15 @@ class JsonEncoder:
 
 
 #Sends JSON package to Main Pi Server
-@app.route('/WelcomeHome' methods=['POST'])
+@app.route('/WelcomeHome', methods=['POST'])
 def SendPackageToMainPi():
-	encoder = JsonEncoder(request.data)
-    request = requests.post("http://10.1.24.195:7070/data", data=encoder.Encode())
-    print(request.status_code, request.reason)
+    #encoder = JsonEncoder(request.data)
+    r = requests.post("http://10.2.15.95:7070/data", data=request.data)
+    print(r.status_code, r.reason)
+    return Response(status=r.status_code)
 
 if __name__ == "__main__":
     app.debug = True
-    app.run()
+    app.run(host="10.1.16.108", port=5000)
+	
 
