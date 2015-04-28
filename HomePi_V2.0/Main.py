@@ -62,18 +62,3 @@ if __name__ == "__main__":
     app.debug = True
     app.run()
 
-
-
-#############   IGNORE   ##################   IGNORE   ###############   IGNORE   ############
-'''class TestObjectMethod(unittest.TestCase):
-    def test_NotEqual_Encode(self):
-        testString = UserData()
-        encoder = JsonEncoder(testObject)
-        result = "Hassan"
-
-        self.assertNotEqual(encoder.Encode(), result)
-
-        print result
-
-if __name__ == '__main__':
-    unittest.main()'''
