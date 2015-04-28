@@ -46,16 +46,11 @@ class JsonEncoder:
 
 
 #Sends JSON package to Main Pi Server
-@app.route('/WelcomeHome/<userData>')
-def SendPackageToMainPi(userData):
-    request = requests.post("http://10.1.24.195:7070/data", data=userData)
+@app.route('/WelcomeHome' methods=['POST'])
+def SendPackageToMainPi():
+	encoder = JsonEncoder(request.data)
+    request = requests.post("http://10.1.24.195:7070/data", data=encoder.Encode())
     print(request.status_code, request.reason)
-
-#Tests SendPackageToMainPi
-backPack = UserData()
-encoder = JsonEncoder(backPack)#creates instance of JsonEncoder and initializes the object with an instance of UserData
-dataObject = encoder.Encode()   #dataObject holds the returned JSON code
-SendPackageToMainPi(dataObject)
 
 if __name__ == "__main__":
     app.debug = True
