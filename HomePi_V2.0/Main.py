@@ -46,7 +46,16 @@ class JsonEncoder:
         result = json.dumps(self.userData.__dict__, sort_keys=True, indent=4)
         return result
 
-
+#Method for app to say I'm home
+@app.route('/HoneyImHome', methods=['POST'])
+def SaveUserState():
+    userValues = request.data
+	userName = userValues['username']
+	home = userValues['ishome']}
+	file = open('{0}.txt'.format(userName),"w")
+	file.writelines(home)
+    file.close()
+		
 #Sends JSON package to Main Pi Server
 @app.route('/WelcomeHome', methods=['POST'])
 def SendPackageToMainPi():
