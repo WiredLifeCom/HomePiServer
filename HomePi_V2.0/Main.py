@@ -102,5 +102,4 @@ def SendPackageToMainPi():
 if __name__ == "__main__":
     app.debug = True
     app.run(host="10.1.2.12", port=5000)
-    requests.post("http://10.1.2.12:5000/HoneyImHome", data='{ "username" : "James",   "isHome" : "true",  "ip_address" : 12345}')
-
+    
