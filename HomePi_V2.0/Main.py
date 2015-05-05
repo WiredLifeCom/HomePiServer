@@ -62,7 +62,7 @@ def as_isHomeNow(d):
 def loopPeople():
     fileList = glob.glob('*.json')
     for fileNumber in range(0, len(fileList)):
-        AreYouThere(filelist[fileNumber])
+        AreYouThere(fileList[fileNumber])
 
 #Method to ping the file from in Parameter
 def AreYouThere(name):
@@ -102,4 +102,4 @@ def SendPackageToMainPi():
 if __name__ == "__main__":
     app.debug = True
     app.run(host="10.1.2.12", port=5000)
-    
+
