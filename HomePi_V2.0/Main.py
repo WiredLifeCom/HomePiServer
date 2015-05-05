@@ -5,6 +5,7 @@ import json
 import requests
 import subprocess
 import glob
+import os
 
 app = Flask(__name__)
 
@@ -34,7 +35,6 @@ class User:
 
 class UserData:
     def __init__(self):
-
         user = User()
         self.user = user.__dict__
         self.unload = "2015-04-21T13:04:54.000+02:00"
@@ -47,37 +47,46 @@ class JsonEncoder:
     def Encode(self):
         result = json.dumps(self.userData.__dict__, sort_keys=True, indent=4)
         return result
-		
+
+
 class imHomeNow(object):
-        userName = ""
-        isHome = ""
-        ip_address = ""
-		
+    username = ""
+    isHome = ""
+    ipAddress = ""
+
+
 def as_isHomeNow(d):
     i = imHomeNow()
     i.__dict__.update(d)
     return i
 
-#loop through json files and make a list, the call the are you there method to check if they are still home
+
+# loop through json files and make a list, the call the are you there method to check if they are still home
 def loopPeople():
     fileList = glob.glob('*.json')
     for fileNumber in range(0, len(fileList)):
+        print fileList[fileNumber]
         AreYouThere(fileList[fileNumber])
+
 
 #Method to ping the file from in Parameter
 def AreYouThere(name):
-    jsonstuff = open(name).read()
-    o = json.loads(jsonstuff, object_hook=as_isHomeNow)
-    address = o.ip_address
-    res = subprocess.call(['ping', '-c', '3', address])
-    if res == 0:
-        print "ping to ", address, " OK"
-    elif res == 2:
-        print "no response from ", address
-        #update main pi with the news here!!
+    jsonData = open(name).read()
+    print "Here is the jsonData", jsonData
+    o = json.loads(jsonData, object_hook=as_isHomeNow)
+    address = o.ipAddress
+    print "The address we are pinging is", address
+    if o.isHome == "true":
+        #res = subprocess.call(['ping', '-c', '3', address])
+        res = os.system("ping -n 1 " + address)
+        if res == 0:
+            print "ping to ", address, " OK"
+        else:
+            print "ping to ", address, " failed!"
+            #Here too!!
     else:
-        print "ping to ", address, " failed!"
-        #Here too!!
+        print "The user ", address, "is not home, I will not ping it"
+
 
 #Method for app to say I'm home
 @app.route('/HoneyImHome', methods=['POST'])
@@ -86,11 +95,12 @@ def SaveUserState():
     o = json.loads(s, object_hook=as_isHomeNow)
     parsed = json.loads(s)
     x = json.dumps(parsed, indent=4, sort_keys=True)
-    file = open('{0}.json'.format(o.username),"w")
+    file = open('{0}.json'.format(o.username), "w")
     file.writelines(x)
     file.close()
     #Update Main Pi here that this user is home!!
-		
+
+
 #Sends JSON package to Main Pi Server
 @app.route('/WelcomeHome', methods=['POST'])
 def SendPackageToMainPi():
@@ -99,7 +109,9 @@ def SendPackageToMainPi():
     print(r.status_code, r.reason)
     return Response(status=r.status_code)
 
+
 if __name__ == "__main__":
     app.debug = True
+    loopPeople()
     app.run(host="10.1.2.12", port=5000)
 
