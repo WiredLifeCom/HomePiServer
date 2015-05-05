@@ -3,6 +3,8 @@ from flask import request
 from flask import Response
 import json
 import requests
+import subprocess
+import glob
 
 app = Flask(__name__)
 
@@ -45,16 +47,49 @@ class JsonEncoder:
     def Encode(self):
         result = json.dumps(self.userData.__dict__, sort_keys=True, indent=4)
         return result
+		
+class imHomeNow(object):
+        userName = ""
+        isHome = ""
+        ip_address = ""
+		
+def as_isHomeNow(d):
+    i = imHomeNow()
+    i.__dict__.update(d)
+    return i
+
+#loop through json files and make a list, the call the are you there method to check if they are still home
+def loopPeople():
+    fileList = glob.glob('*.json')
+    for fileNumber in range(0, len(fileList)):
+        AreYouThere(filelist[fileNumber])
+
+#Method to ping the file from in Parameter
+def AreYouThere(name):
+    jsonstuff = open(name).read()
+    o = json.loads(jsonstuff, object_hook=as_isHomeNow)
+    address = o.ip_address
+    res = subprocess.call(['ping', '-c', '3', address])
+    if res == 0:
+        print "ping to ", address, " OK"
+    elif res == 2:
+        print "no response from ", address
+        #update main pi with the news here!!
+    else:
+        print "ping to ", address, " failed!"
+        #Here too!!
 
 #Method for app to say I'm home
 @app.route('/HoneyImHome', methods=['POST'])
 def SaveUserState():
-    userValues = request.data
-	userName = userValues['username']
-	home = userValues['ishome']}
-	file = open('{0}.txt'.format(userName),"w")
-	file.writelines(home)
+    s = request.data
+    o = json.loads(s, object_hook=as_isHomeNow)
+    parsed = json.loads(s)
+    x = json.dumps(parsed, indent=4, sort_keys=True)
+    file = open('{0}.json'.format(o.username),"w")
+    file.writelines(x)
     file.close()
+    #Update Main Pi here that this user is home!!
 		
 #Sends JSON package to Main Pi Server
 @app.route('/WelcomeHome', methods=['POST'])
@@ -66,6 +101,6 @@ def SendPackageToMainPi():
 
 if __name__ == "__main__":
     app.debug = True
-    app.run(host="10.1.16.108", port=5000)
-	
+    app.run(host="10.1.2.12", port=5000)
+    requests.post("http://10.1.2.12:5000/HoneyImHome", data='{ "username" : "James",   "isHome" : "true",  "ip_address" : 12345}')
 
