@@ -64,9 +64,10 @@ def as_isHomeNow(d):
 # loop through json files and make a list, the call the are you there method to check if they are still home
 def loopPeople():
     fileList = glob.glob('*.json')
-    for fileNumber in range(0, len(fileList)):
-        print fileList[fileNumber]
-        AreYouThere(fileList[fileNumber])
+    if fileList:
+        for fileNumber in range(0, len(fileList)):
+            print fileList[fileNumber]
+            AreYouThere(fileList[fileNumber])
 
 
 #Method to ping the file from in Parameter
@@ -84,6 +85,11 @@ def AreYouThere(name):
         else:
             print "ping to ", address, " failed!"
             #Here too!!
+            file = open('{0}.json'.format(o.username), "w")
+            o.isHome = "false"
+            x = json.dumps(o, default=lambda y: y.__dict__, indent=4, sort_keys=True)
+            file.writelines(x)
+            file.close()
     else:
         print "The user ", address, "is not home, I will not ping it"
 
@@ -113,5 +119,5 @@ def SendPackageToMainPi():
 if __name__ == "__main__":
     app.debug = True
     loopPeople()
-    app.run(host="10.1.2.12", port=5000)
+    app.run(host="10.1.16.193", port=5000)
 
