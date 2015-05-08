@@ -1,5 +1,5 @@
 {
-    "ip_address": 12345, 
-    "isHome": "false", 
+    "ipAddress": "10.1.16.193", 
+    "isHome": "true", 
     "username": "Bill"
 }

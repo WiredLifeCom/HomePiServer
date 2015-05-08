@@ -1,6 +1,8 @@
 from flask import Flask
 from flask import request
 from flask import Response
+from threading import Thread
+from time import sleep
 import json
 import requests
 import subprocess
@@ -60,6 +62,10 @@ def as_isHomeNow(d):
     i.__dict__.update(d)
     return i
 
+def threadedFunction():
+    while True:
+        loopPeople()
+        sleep(10)
 
 # loop through json files and make a list, the call the are you there method to check if they are still home
 def loopPeople():
@@ -78,7 +84,6 @@ def AreYouThere(name):
     address = o.ipAddress
     print "The address we are pinging is", address
     if o.isHome == "true":
-        #res = subprocess.call(['ping', '-c', '3', address])
         res = os.system("ping -n 1 " + address)
         if res == 0:
             print "ping to ", address, " OK"
@@ -118,6 +123,7 @@ def SendPackageToMainPi():
 
 if __name__ == "__main__":
     app.debug = True
-    loopPeople()
-    app.run(host="10.1.16.193", port=5000)
+    thread = Thread(target = threadedFunction)
+    thread.start()
+    app.run(host="10.1.16.193", port=5000, debug=True, use_reloader=False)
 
