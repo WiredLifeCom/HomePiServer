@@ -3,6 +3,7 @@ from flask import request
 from flask import Response
 from threading import Thread
 from time import sleep
+import atexit
 import json
 import requests
 import subprocess
@@ -10,7 +11,6 @@ import glob
 import os
 
 app = Flask(__name__)
-
 
 class Zone:
     def __init__(self):
@@ -63,9 +63,11 @@ def as_isHomeNow(d):
     return i
 
 def threadedFunction():
-    while True:
+    mainRunning = True
+    while mainRunning:
         loopPeople()
         sleep(10)
+
 
 # loop through json files and make a list, the call the are you there method to check if they are still home
 def loopPeople():
@@ -119,6 +121,12 @@ def SendPackageToMainPi():
     r = requests.post("http://10.2.15.95:7070/data", data=request.data)
     print(r.status_code, r.reason)
     return Response(status=r.status_code)
+
+def exit_handler():
+    thread.mainRunning = False
+    thread.Join()
+
+atexit.register(exit_handler)
 
 
 if __name__ == "__main__":
