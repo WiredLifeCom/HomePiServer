@@ -11,6 +11,7 @@ import os
 
 app = Flask(__name__)
 
+
 class Zone:
     def __init__(self):
         self.arrival = "2015-04-21T11:42:11.000+02:00"
@@ -61,6 +62,7 @@ def as_isHomeNow(d):
     i.__dict__.update(d)
     return i
 
+
 def threadedFunction():
     mainRunning = True
     while mainRunning:
@@ -77,7 +79,7 @@ def loopPeople():
             AreYouThere(fileList[fileNumber])
 
 
-#Method to ping the file from in Parameter
+# Method to ping the file from in Parameter
 def AreYouThere(name):
     jsonData = open(name).read()
     o = json.loads(jsonData, object_hook=as_isHomeNow)
@@ -95,7 +97,7 @@ def AreYouThere(name):
             file.writelines(x)
             file.close()
             # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
-            #Update MainPi that the user is ot home anymore
+            # Update MainPi that the user is ot home anymore
     else:
         print "***The user with address : ", address, " is not home!***"
 
@@ -111,11 +113,11 @@ def SaveUserState():
         file = open('{0}.json'.format(o.username), "w")
         file.writelines(x)
         file.close()
-        return Response(status = 200)
+        return Response(status=200)
     except:
-        return Response(status = 500)
-    # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
-    #Update Main Pi here that this user is home!!
+        return Response(status=500)
+        # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
+        #Update Main Pi here that this user is home!!
 
 
 #Sends JSON package from mobile app to Main Pi Server
@@ -130,11 +132,12 @@ def exit_handler():
     thread.mainRunning = False
     thread.Join()
 
+
 atexit.register(exit_handler)
 
 if __name__ == "__main__":
     app.debug = True
-    thread = Thread(target = threadedFunction)
+    thread = Thread(target=threadedFunction)
     thread.start()
     app.run(host="10.1.16.193", port=5000, debug=True, use_reloader=False)
 
