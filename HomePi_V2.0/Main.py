@@ -52,19 +52,19 @@ def loopPeople():
 # Method to ping the file from in Parameter
 def AreYouThere(name):
     jsonData = open(name).read()
-    o = json.loads(jsonData, object_hook=as_isHomeNow)
-    address = o.ipAddress
+    jsonObject = json.loads(jsonData, object_hook=as_isHomeNow)
+    address = jsonObject.ipAddress
     print "The address to ping: ", address
-    if o.isHome == "true":
+    if jsonObject.isHome == "true":
         res = os.system("ping -n 1 " + address)
         if res == 0:
             print "***Ping to ", address, " had a response, user is home***"
         else:
             print "***Ping to ", address, " failed!***"
-            file = open('{0}.json'.format(o.username), "w")
-            o.isHome = "false"
-            x = json.dumps(o, default=lambda y: y.__dict__, indent=4, sort_keys=True)
-            file.writelines(x)
+            file = open('{0}.json'.format(jsonObject.username), "w")
+            jsonObject.isHome = "false"
+            jsonString = json.dumps(jsonObject, default=lambda y: y.__dict__, indent=4, sort_keys=True)
+            file.writelines(jsonString)
             file.close()
             # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
             # Update MainPi that the user is ot home anymore
@@ -76,13 +76,13 @@ def AreYouThere(name):
 @app.route('/HoneyImHome', methods=['POST'])
 def SaveUserState():
     try:
-        s = request.data
-        o = json.loads(s, object_hook=as_isHomeNow)
-        parsed = json.loads(s)
-        x = json.dumps(parsed, indent=4, sort_keys=True)
-        file = open('{0}.json'.format(o.username), "w")
-        file.writelines(x)
-        file.close()
+        postData = request.data
+        jsonObject = json.loads(postData, object_hook=as_isHomeNow)
+        parsedJson = json.loads(postData)
+        jsonString = json.dumps(parsedJson, indent=4, sort_keys=True)
+        fileManager = open('{0}.json'.format(jsonObject.username), "w")
+        fileManager.writelines(jsonString)
+        fileManager.close()
         return Response(status=200)
     except:
         return Response(status=500)
