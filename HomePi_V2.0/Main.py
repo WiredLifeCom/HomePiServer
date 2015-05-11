@@ -6,7 +6,6 @@ from time import sleep
 import atexit
 import json
 import requests
-import subprocess
 import glob
 import os
 
@@ -74,60 +73,64 @@ def loopPeople():
     fileList = glob.glob('*.json')
     if fileList:
         for fileNumber in range(0, len(fileList)):
-            print fileList[fileNumber]
+            print "Opening file: " + fileList[fileNumber] + "..."
             AreYouThere(fileList[fileNumber])
 
 
 #Method to ping the file from in Parameter
 def AreYouThere(name):
     jsonData = open(name).read()
-    print "Here is the jsonData", jsonData
     o = json.loads(jsonData, object_hook=as_isHomeNow)
     address = o.ipAddress
-    print "The address we are pinging is", address
+    print "The address to ping: ", address
     if o.isHome == "true":
         res = os.system("ping -n 1 " + address)
         if res == 0:
-            print "ping to ", address, " OK"
+            print "***Ping to ", address, " had a response, user is home***"
         else:
-            print "ping to ", address, " failed!"
-            #Here too!!
+            print "***Ping to ", address, " failed!***"
             file = open('{0}.json'.format(o.username), "w")
             o.isHome = "false"
             x = json.dumps(o, default=lambda y: y.__dict__, indent=4, sort_keys=True)
             file.writelines(x)
             file.close()
+            # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
+            #Update MainPi that the user is ot home anymore
     else:
-        print "The user ", address, "is not home, I will not ping it"
+        print "***The user with address : ", address, " is not home!***"
 
 
 #Method for app to say I'm home
 @app.route('/HoneyImHome', methods=['POST'])
 def SaveUserState():
-    s = request.data
-    o = json.loads(s, object_hook=as_isHomeNow)
-    parsed = json.loads(s)
-    x = json.dumps(parsed, indent=4, sort_keys=True)
-    file = open('{0}.json'.format(o.username), "w")
-    file.writelines(x)
-    file.close()
+    try:
+        s = request.data
+        o = json.loads(s, object_hook=as_isHomeNow)
+        parsed = json.loads(s)
+        x = json.dumps(parsed, indent=4, sort_keys=True)
+        file = open('{0}.json'.format(o.username), "w")
+        file.writelines(x)
+        file.close()
+        return Response(status = 200)
+    except:
+        return Response(status = 500)
+    # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
     #Update Main Pi here that this user is home!!
 
 
-#Sends JSON package to Main Pi Server
-@app.route('/WelcomeHome', methods=['POST'])
+#Sends JSON package from mobile app to Main Pi Server
+@app.route('/unLoad', methods=['POST'])
 def SendPackageToMainPi():
-    #encoder = JsonEncoder(request.data)
     r = requests.post("http://10.2.15.95:7070/data", data=request.data)
     print(r.status_code, r.reason)
     return Response(status=r.status_code)
+
 
 def exit_handler():
     thread.mainRunning = False
     thread.Join()
 
 atexit.register(exit_handler)
-
 
 if __name__ == "__main__":
     app.debug = True
