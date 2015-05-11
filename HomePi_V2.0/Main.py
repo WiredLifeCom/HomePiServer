@@ -45,7 +45,7 @@ def loopPeople():
     fileList = glob.glob('*.json')
     if fileList:
         for fileNumber in range(0, len(fileList)):
-            print "Opening file: " + fileList[fileNumber] + "..."
+            print "Opening file: [ " + fileList[fileNumber] + " ] ..."
             AreYouThere(fileList[fileNumber])
 
 
@@ -54,22 +54,22 @@ def AreYouThere(name):
     jsonData = open(name).read()
     jsonObject = json.loads(jsonData, object_hook=as_isHomeNow)
     address = jsonObject.ipAddress
-    print "The address to ping: ", address
+    print "The address to ping: { ", address + " }"
     if jsonObject.isHome == "true":
         res = os.system("ping -n 1 " + address)
         if res == 0:
-            print "***Ping to ", address, " had a response, user is home***"
+            print "***Ping to { ", address, " } had a response, user is home***"
         else:
-            print "***Ping to ", address, " failed!***"
-            file = open('{0}.json'.format(jsonObject.username), "w")
+            print "***Ping to { ", address, " } failed!***"
+            fileManager = open('{0}.json'.format(jsonObject.username), "w")
             jsonObject.isHome = "false"
             jsonString = json.dumps(jsonObject, default=lambda y: y.__dict__, indent=4, sort_keys=True)
-            file.writelines(jsonString)
-            file.close()
+            fileManager.writelines(jsonString)
+            fileManager.close()
             # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
             # Update MainPi that the user is ot home anymore
     else:
-        print "***The user with address : ", address, " is not home!***"
+        print "***The user with address : { ", address, " } is not home!***"
 
 
 #Method for app to say I'm home
