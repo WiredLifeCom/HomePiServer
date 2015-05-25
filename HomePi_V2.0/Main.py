@@ -20,6 +20,27 @@ class JsonEncoder:
         result = json.dumps(self.userData.__dict__, sort_keys=True, indent=4)
         return result
 
+class Zone(object):
+    arrival = ""
+    departure = ""
+    radius = 0
+    material = ""
+    longitude = 0.0
+    latitude = 0.0
+
+class User(object):
+    username = ""
+
+class Unload(object):
+    unload = ""
+    materials = []
+    user = User()
+    zones = [Zone()]
+
+def as_Unload(d):
+    i = Unload()
+    i.__dict__.update(d)
+    return i
 
 class imHomeNow(object):
     username = ""
@@ -31,6 +52,7 @@ def as_isHomeNow(d):
     i = imHomeNow()
     i.__dict__.update(d)
     return i
+
 
 
 def threadedFunction():
@@ -51,8 +73,7 @@ def loopPeople():
 
 # Method to ping the file from in Parameter
 def AreYouThere(name):
-    jsonData = open(name).read()
-    jsonObject = json.loads(jsonData, object_hook=as_isHomeNow)
+    jsonObject = json.loads(open(name).read(), object_hook=as_isHomeNow)
     address = jsonObject.ipAddress
     print "The address to ping: { ", address + " }"
     if jsonObject.isHome == "true":
@@ -63,8 +84,7 @@ def AreYouThere(name):
             print "***Ping to { ", address, " } failed!***"
             fileManager = open('{0}.json'.format(jsonObject.username), "w")
             jsonObject.isHome = "false"
-            jsonString = json.dumps(jsonObject, default=lambda y: y.__dict__, indent=4, sort_keys=True)
-            fileManager.writelines(jsonString)
+            fileManager.writelines(json.dumps(jsonObject, default=lambda y: y.__dict__, indent=4, sort_keys=True))
             fileManager.close()
             # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
             # Update MainPi that the user is ot home anymore
@@ -76,12 +96,9 @@ def AreYouThere(name):
 @app.route('/HoneyImHome', methods=['POST'])
 def SaveUserState():
     try:
-        postData = request.data
-        jsonObject = json.loads(postData, object_hook=as_isHomeNow)
-        parsedJson = json.loads(postData)
-        jsonString = json.dumps(parsedJson, indent=4, sort_keys=True)
+        jsonObject = json.loads(request.data, object_hook=as_isHomeNow)
         fileManager = open('{0}.json'.format(jsonObject.username), "w")
-        fileManager.writelines(jsonString)
+        fileManager.writelines(json.dumps(json.loads(request.data), indent=4, sort_keys=True))
         fileManager.close()
         return Response(status=200)
     except:
@@ -91,9 +108,13 @@ def SaveUserState():
 
 
 #Sends JSON package from mobile app to Main Pi Server
-@app.route('/unLoad', methods=['POST'])
+@app.route('/unload', methods=['POST'])
 def SendPackageToMainPi():
-    r = requests.post("http://10.2.15.95:7070/data", data=request.data)
+    jsonObject = json.loads(request.data, object_hook=as_Unload)
+    if jsonObject.materials is None:
+        return Response(status=422)
+    print request.data
+    r = requests.post("http://10.1.17.115:7070/unload", data=request.data)
     print(r.status_code, r.reason)
     return Response(status=r.status_code)
 
@@ -108,6 +129,6 @@ atexit.register(exit_handler)
 if __name__ == "__main__":
     app.debug = True
     thread = Thread(target=threadedFunction)
-    thread.start()
+    #thread.start()
     app.run(host="10.1.16.193", port=5000, debug=True, use_reloader=False)
 
