@@ -87,7 +87,7 @@ def AreYouThere(name):
             jsonObject.isHome = "false"
             fileManager.writelines(json.dumps(jsonObject, default=lambda y: y.__dict__, indent=4, sort_keys=True))
             fileManager.close()
-            # r = requests.post("http://10.2.15.95:7070/onlinestatus", data="o.isHome")
+            # r = requests.post("http://10.2.15.95:7070/onlinestatus", data="json.dumps(jsonObject)")
 
             # Update MainPi that the user is ot home anymore
     else:
@@ -110,7 +110,8 @@ def SaveUserState(updateuser):
 @app.route('/unload', methods=['POST'])
 def SendPackageToMainPi():
     jsonObject = json.loads(request.data, object_hook=as_Unload)
-    if jsonObject.materials is None:
+    if len(jsonObject.materials) is 0:
+        print "no good json request!!"
         return Response(status=422)
     print "unload *** ", request.data
     #r = requests.post("http://10.1.17.115:7070/unload", data=request.data)
