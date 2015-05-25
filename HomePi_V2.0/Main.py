@@ -9,6 +9,7 @@ import requests
 import glob
 import os
 
+
 app = Flask(__name__)
 
 
@@ -86,26 +87,24 @@ def AreYouThere(name):
             jsonObject.isHome = "false"
             fileManager.writelines(json.dumps(jsonObject, default=lambda y: y.__dict__, indent=4, sort_keys=True))
             fileManager.close()
-            # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
+            # r = requests.post("http://10.2.15.95:7070/onlinestatus", data="o.isHome")
+
             # Update MainPi that the user is ot home anymore
     else:
         print "***The user with address : { ", address, " } is not home!***"
 
 
 #Method for app to say I'm home
-@app.route('/HoneyImHome', methods=['POST'])
-def SaveUserState():
-    try:
-        jsonObject = json.loads(request.data, object_hook=as_isHomeNow)
-        fileManager = open('{0}.json'.format(jsonObject.username), "w")
-        fileManager.writelines(json.dumps(json.loads(request.data), indent=4, sort_keys=True))
+#@app.route('/HoneyImHome', methods=['POST'])
+def SaveUserState(updateuser):
+        print "Save user state got this ***", updateuser
+        jsonObject = json.loads(updateuser, object_hook=as_isHomeNow)
+        fileManager= open('{0}.json'.format(jsonObject.username), "w")
+        fileManager.writelines(json.dumps(json.loads(updateuser), indent=4, sort_keys=True))
         fileManager.close()
-        return Response(status=200)
-    except:
-        return Response(status=500)
-        # r = requests.post("http://10.2.15.95:7070/data", data="o.isHome")
-        #Update Main Pi here that this user is home!!
-
+        #r = requests.post("http://10.2.15.95:7070/onlinestatus", data=updateuser)
+        #return Response(status=r.status_code)
+        return ""
 
 #Sends JSON package from mobile app to Main Pi Server
 @app.route('/unload', methods=['POST'])
@@ -113,15 +112,19 @@ def SendPackageToMainPi():
     jsonObject = json.loads(request.data, object_hook=as_Unload)
     if jsonObject.materials is None:
         return Response(status=422)
-    print request.data
-    r = requests.post("http://10.1.17.115:7070/unload", data=request.data)
-    print(r.status_code, r.reason)
-    return Response(status=r.status_code)
+    print "unload *** ", request.data
+    #r = requests.post("http://10.1.17.115:7070/unload", data=request.data)
+    #print(r.status_code, r.reason)
+    print "Unload *** This is ip", request.remote_addr
+    SaveUserState(json.dumps({"username": jsonObject.user.username,
+                              "isHome": "true", "ipAddress": request.remote_addr}))
+    #return Response(status=r.status_code)
+    return ""
+
 
 
 def exit_handler():
     thread.mainRunning = False
-    thread.Join()
 
 
 atexit.register(exit_handler)
