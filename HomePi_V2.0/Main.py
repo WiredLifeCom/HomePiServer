@@ -8,6 +8,7 @@ import json
 import requests
 import glob
 import os
+import sys
 
 
 app = Flask(__name__)
@@ -87,8 +88,8 @@ def AreYouThere(name):
             jsonObject.isHome = "false"
             fileManager.writelines(json.dumps(jsonObject, default=lambda y: y.__dict__, indent=4, sort_keys=True))
             fileManager.close()
-            # r = requests.post("http://10.2.15.95:7070/onlinestatus", data="json.dumps(jsonObject)")
-
+            r = requests.post("http://",mainPiIP,"/onlinestatus", data="json.dumps(jsonObject)")
+            return Response(status=r.status_code)
             # Update MainPi that the user is ot home anymore
     else:
         print "***The user with address : { ", address, " } is not home!***"
@@ -102,9 +103,9 @@ def SaveUserState(updateuser):
         fileManager= open('{0}.json'.format(jsonObject.username), "w")
         fileManager.writelines(json.dumps(json.loads(updateuser), indent=4, sort_keys=True))
         fileManager.close()
-        #r = requests.post("http://10.2.15.95:7070/onlinestatus", data=updateuser)
-        #return Response(status=r.status_code)
-        return ""
+        r = requests.post("http://",mainPiIP,"/onlinestatus", data=updateuser)
+        return Response(status=r.status_code)
+
 
 #Sends JSON package from mobile app to Main Pi Server
 @app.route('/unload', methods=['POST'])
@@ -114,13 +115,13 @@ def SendPackageToMainPi():
         print "no good json request!!"
         return Response(status=422)
     print "unload *** ", request.data
-    #r = requests.post("http://10.1.17.115:7070/unload", data=request.data)
-    #print(r.status_code, r.reason)
+    r = requests.post("http://",mainPiIP,"/unload", data=request.data)
+    print(r.status_code, r.reason)
     print "Unload *** This is ip", request.remote_addr
     SaveUserState(json.dumps({"username": jsonObject.user.username,
                               "isHome": "true", "ipAddress": request.remote_addr}))
-    #return Response(status=r.status_code)
-    return ""
+    return Response(status=r.status_code)
+
 
 
 
@@ -134,5 +135,8 @@ if __name__ == "__main__":
     app.debug = True
     thread = Thread(target=threadedFunction)
     #thread.start()
-    app.run(host="10.1.16.193", port=5000, debug=True, use_reloader=False)
+    print 'argument list;', str(sys.argv)
+    myIP = str(sys.argv[1])
+    mainPiIP = str(sys.argv[2])
+    app.run(host=myIP, port=5000, debug=True, use_reloader=False)
 
